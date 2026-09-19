@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<noscript><style>.media-frame img { opacity: 1 !important; }</style></noscript>
+<noscript><style>.pair-media img { opacity: 1 !important; }</style></noscript>
 <style>
 
   /* ============ DESIGN TOKENS ============ */
@@ -95,8 +95,9 @@
   html {
     scroll-padding-top: calc(72px + var(--safe-t));
     -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+    width: 100%;
   }
-  html, body { height: 100%; }
   body {
     margin: 0;
     background: var(--surface-alt);
@@ -111,6 +112,9 @@
     padding-right: var(--safe-r);
     transition: background 0.3s ease, color 0.3s ease;
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
   }
   img, video { max-width: 100%; display: block; }
   h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; color: var(--ink); }
@@ -409,6 +413,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .pair-media .media-eyebrow {
     display: flex;
@@ -426,41 +431,37 @@
   .pair-media.is-photo .media-eyebrow { color: var(--ocean-700); }
   .pair-media.is-video .media-eyebrow { color: var(--teal-600); }
 
-  .media-frame {
+  /* Photo and video are each their own plain, independent frame --
+     the border-radius, background and sizing live directly on the
+     <img> / <video> element itself. No wrapping box, nothing
+     absolutely positioned inside anything else. */
+  .pair-media img,
+  .pair-media video {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    width: calc(100% - clamp(32px, 8vw, 56px));
     margin: 0 clamp(16px, 4vw, 28px) clamp(16px, 4vw, 28px);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    background: #04262b;
     aspect-ratio: 5 / 4;
     max-height: 46vh;
-    position: relative;
-  }
-  .media-frame img,
-  .media-frame video {
-    /* Pinned by all four edges instead of width/height percentages.
-       An absolutely positioned element with inset:0 is sized purely
-       by its containing block, never by its own intrinsic pixel
-       dimensions -- this is what stops iOS Safari's native video
-       controls from ever being able to compute a size wider than
-       this box, which is what was pushing the player past the
-       screen edge. */
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
     object-fit: cover;
-    display: block;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    background: #04262b;
   }
-  .media-frame img {
+  .pair-media img {
     opacity: 0;
     transition: opacity 0.5s ease;
   }
-  .media-frame img.is-loaded,
-  .media-frame img.no-js {
+  .pair-media img.is-loaded,
+  .pair-media img.no-js {
     opacity: 1;
   }
-  .media-frame video { object-fit: contain; background: #04191d; }
+  .pair-media video {
+    object-fit: contain;
+    background: #04191d;
+  }
 
   .arrow-divider {
     display: flex;
@@ -517,12 +518,19 @@
       height: 100%;
     }
     .arrow-divider .line { width: 1px; max-width: none; height: 44px; }
-    .media-frame { aspect-ratio: 4 / 5; max-height: none; margin: 0 clamp(10px, 2vw, 20px) 18px; }
+    .pair-media img,
+    .pair-media video {
+      aspect-ratio: 4 / 5;
+      max-height: none;
+      margin: 0 clamp(10px, 2vw, 20px) 18px;
+      width: calc(100% - clamp(20px, 4vw, 40px));
+    }
     .pair-label, .pair-caption { text-align: center; }
   }
 
   @media (min-width: 1100px) {
-    .media-frame { aspect-ratio: 4 / 5; }
+    .pair-media img,
+    .pair-media video { aspect-ratio: 4 / 5; }
   }
 
   /* ============ COMING SOON STRIP ============ */
@@ -624,9 +632,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
                   Original Photo
                 </span>
-                <div class="media-frame" style="background-image:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAfABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDUm1SCPKROryAHAzgfnUujau15I8U8YjlU549K529kNpqc+EB3A4XsAeeajhu54oWnil8tj0Ax09M1hGCWxtK73PQKK4aHWtU+75zsfoDRWxiQ6hdBbhriTDNJkexz3qg88U0UceVh2gliASCfQAdKrsktxvk+9sG5ue1RYojGxpUqOfodT4avh5ZhYIWByrHk9OlFZNtaS2U1pNKdokAkXacnGaKwqwk5XRUHG1mf/9k=');background-size:cover;background-position:center;">
-                  <img src="images/dad_t.jpeg" alt="A woman in a black and white beaded cap and red scarf leans in smiling next to an older man wearing a Red Sox cap and a navy Hartford Federal Credit Union fleece." width="1100" height="1466" loading="eager" decoding="async" fetchpriority="high" onload="this.classList.add('is-loaded')">
-                </div>
+                <img src="images/dad_t.jpeg" alt="A woman in a black and white beaded cap and red scarf leans in smiling next to an older man wearing a Red Sox cap and a navy Hartford Federal Credit Union fleece." width="1100" height="1466" loading="eager" decoding="async" fetchpriority="high" onload="this.classList.add('is-loaded')" style="background-image:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAfABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDUm1SCPKROryAHAzgfnUujau15I8U8YjlU549K529kNpqc+EB3A4XsAeeajhu54oWnil8tj0Ax09M1hGCWxtK73PQKK4aHWtU+75zsfoDRWxiQ6hdBbhriTDNJkexz3qg88U0UceVh2gliASCfQAdKrsktxvk+9sG5ue1RYojGxpUqOfodT4avh5ZhYIWByrHk9OlFZNtaS2U1pNKdokAkXacnGaKwqwk5XRUHG1mf/9k=');background-size:cover;background-position:center;">
               </div>
 
               <div class="arrow-divider" aria-hidden="true"><span class="line"></span>→<span class="line"></span></div>
@@ -636,12 +642,10 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                   Brought to Life
                 </span>
-                <div class="media-frame">
-                  <video controls preload="metadata" playsinline poster="images/dad_t.jpeg">
-                    <source src="https://msuqflssqixsplcearxr.supabase.co/storage/v1/object/sign/videos/dad_t.mp4?token=eyJraWQiOiI0ZDQ5MTFmZS03ZjRmLTQ3MTktYWQzZS1mM2ZjMDUwOTViOGYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvZGFkX3QubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTgzNzE5MywiZXhwIjoxODIxMzczMTkzfQ.MF5_ZTvgrUTit2mLCY0otowC-lnEZdYRutu92JUEFng" type="video/mp4">
-                    Your browser doesn't support embedded video. Use the link below to watch it instead.
-                  </video>
-                </div>
+                <video controls preload="metadata" playsinline poster="images/dad_t.jpeg">
+                  <source src="https://msuqflssqixsplcearxr.supabase.co/storage/v1/object/sign/videos/dad_t.mp4?token=eyJraWQiOiI0ZDQ5MTFmZS03ZjRmLTQ3MTktYWQzZS1mM2ZjMDUwOTViOGYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvZGFkX3QubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTgzNzE5MywiZXhwIjoxODIxMzczMTkzfQ.MF5_ZTvgrUTit2mLCY0otowC-lnEZdYRutu92JUEFng" type="video/mp4">
+                  Your browser doesn't support embedded video. Use the link below to watch it instead.
+                </video>
               </div>
             </div>
 
@@ -667,9 +671,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
                   Original Photo
                 </span>
-                <div class="media-frame" style="background-image:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAfABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDemmmSW3AkO1nIIx1+Un+lR3l5PBaySKy7lGeVrl9P1RIL0vPOzp5m4nBIPXn9a6DV3VtImeMhg0fykc5zU8o27D11K5W2jd0jLMgY8EckZorN1W8aNLeK2YYGFkJXgADGM9qKz5WbLlOYRZVid0Hy4wT7GtazuFezNusjxxqysATnAHJP59q3o/DtiDn94yHnYx4NL/wj1oJfMjd4/wDZUDFaOZkkjAgvUVAJ87SvIGM0VsDwzCjlvtDMM52sgxRRzoLH/9k=');background-size:cover;background-position:center;">
-                  <img src="images/dad_vs_milton.jpg" alt="Two men laughing and relaxing in patio chairs outdoors — one in a navy King Industries t-shirt and denim shorts, the other in a floral shirt and sunglasses." width="1100" height="1466" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')">
-                </div>
+                <img src="images/dad_vs_milton.jpg" alt="Two men laughing and relaxing in patio chairs outdoors — one in a navy King Industries t-shirt and denim shorts, the other in a floral shirt and sunglasses." width="1100" height="1466" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" style="background-image:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAfABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDemmmSW3AkO1nIIx1+Un+lR3l5PBaySKy7lGeVrl9P1RIL0vPOzp5m4nBIPXn9a6DV3VtImeMhg0fykc5zU8o27D11K5W2jd0jLMgY8EckZorN1W8aNLeK2YYGFkJXgADGM9qKz5WbLlOYRZVid0Hy4wT7GtazuFezNusjxxqysATnAHJP59q3o/DtiDn94yHnYx4NL/wj1oJfMjd4/wDZUDFaOZkkjAgvUVAJ87SvIGM0VsDwzCjlvtDMM52sgxRRzoLH/9k=');background-size:cover;background-position:center;">
               </div>
 
               <div class="arrow-divider" aria-hidden="true"><span class="line"></span>→<span class="line"></span></div>
@@ -679,12 +681,10 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                   Brought to Life
                 </span>
-                <div class="media-frame">
-                  <video controls preload="metadata" playsinline poster="images/dad_vs_milton.jpg">
-                    <source src="https://msuqflssqixsplcearxr.supabase.co/storage/v1/object/sign/videos/dad_vs_milton.mp4?token=eyJraWQiOiI0ZDQ5MTFmZS03ZjRmLTQ3MTktYWQzZS1mM2ZjMDUwOTViOGYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvZGFkX3ZzX21pbHRvbi5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5ODM3MjEwLCJleHAiOjE4MjEzNzMyMTB9.8YftF-1VwtL8PlcJsoZRszJB8JMlFwnm5YAjyeg9OVw" type="video/mp4">
-                    Your browser doesn't support embedded video. Use the link below to watch it instead.
-                  </video>
-                </div>
+                <video controls preload="metadata" playsinline poster="images/dad_vs_milton.jpg">
+                  <source src="https://msuqflssqixsplcearxr.supabase.co/storage/v1/object/sign/videos/dad_vs_milton.mp4?token=eyJraWQiOiI0ZDQ5MTFmZS03ZjRmLTQ3MTktYWQzZS1mM2ZjMDUwOTViOGYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvZGFkX3ZzX21pbHRvbi5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5ODM3MjEwLCJleHAiOjE4MjEzNzMyMTB9.8YftF-1VwtL8PlcJsoZRszJB8JMlFwnm5YAjyeg9OVw" type="video/mp4">
+                  Your browser doesn't support embedded video. Use the link below to watch it instead.
+                </video>
               </div>
             </div>
 
