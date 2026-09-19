@@ -362,6 +362,7 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     overflow: hidden;
+    contain: paint;
   }
   .pair-card .pair-label {
     display: flex;
@@ -433,13 +434,23 @@
     background: #04262b;
     aspect-ratio: 5 / 4;
     max-height: 46vh;
+    position: relative;
+    /* iOS Safari can render native <video> controls on a layer that
+       ignores a parent's overflow/border-radius clipping once the
+       video starts playing. contain + isolation force it onto its
+       own composited layer that respects this box's clipping. */
+    contain: paint;
+    isolation: isolate;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
   }
   .media-frame img,
   .media-frame video {
     width: 100%;
     height: 100%;
+    max-width: 100%;
     object-fit: cover;
     display: block;
+    border-radius: inherit;
   }
   .media-frame img {
     opacity: 0;
