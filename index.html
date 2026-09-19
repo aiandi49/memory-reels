@@ -435,22 +435,22 @@
     aspect-ratio: 5 / 4;
     max-height: 46vh;
     position: relative;
-    /* iOS Safari can render native <video> controls on a layer that
-       ignores a parent's overflow/border-radius clipping once the
-       video starts playing. contain + isolation force it onto its
-       own composited layer that respects this box's clipping. */
-    contain: paint;
-    isolation: isolate;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
   }
   .media-frame img,
   .media-frame video {
+    /* Pinned by all four edges instead of width/height percentages.
+       An absolutely positioned element with inset:0 is sized purely
+       by its containing block, never by its own intrinsic pixel
+       dimensions -- this is what stops iOS Safari's native video
+       controls from ever being able to compute a size wider than
+       this box, which is what was pushing the player past the
+       screen edge. */
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    max-width: 100%;
     object-fit: cover;
     display: block;
-    border-radius: inherit;
   }
   .media-frame img {
     opacity: 0;
